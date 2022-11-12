@@ -38,5 +38,25 @@ func main() {
 		w.WriteHeader(200)
 	})
 
+	http.HandleFunc("/go-map", func(w http.ResponseWriter, r *http.Request) {
+		conn := pool.Get()
+		defer conn.Close()
+
+		values := map[string]int{
+			"key1": 100,
+			"key2": 200,
+		}
+		if _, err := conn.Do("SET", "key", values); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		value, err := redis.Bytes(conn.Do("GET", "key"))
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		w.Write(value)
+	})
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
