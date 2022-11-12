@@ -1,11 +1,12 @@
 # [go] dockerでredisの開発環境構築
 まずgoの環境を作っていきます。
-goの環境を初期化
+goの環境を初期化し、redisのモジュールをimportします。
 ```
 go mod init go-redis
 go get github.com/gomodule/redigo/redis
 ```
 
+redisの動作を確認するためのgoのコードを書いていきます。
 ```
 package main
 
@@ -64,11 +65,11 @@ pool = &redis.Pool{
 }
 ```
 
-以下のようなhttpハンドラを作成します。
+httpハンドラを作成します。
 redisに接続し、キーがkey,値がvalueの文字列を設定します。
 すぐにそのキーを使って値を取り出し、レスポンスします。
 ```
-  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+  http.HandleFunc("/redis", func(w http.ResponseWriter, r *http.Request) {
 		conn := pool.Get()
 		defer conn.Close()
 
@@ -103,3 +104,26 @@ CMD [ "./app" ]
 
 次にgoの環境とredisを接続するための
 docker-compose.ymlファイルを作成します。
+```
+version: '3.4'
+
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - redis
+  
+  redis:
+    container_name: redis
+    image: "redis:7.0"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./redis/db:/data"
+```

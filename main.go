@@ -21,7 +21,7 @@ func main() {
 		},
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/redis", func(w http.ResponseWriter, r *http.Request) {
 		conn := pool.Get()
 		defer conn.Close()
 
